@@ -54,5 +54,8 @@ This project is an implementation of arithmetic operations on sparse matrices, w
 The program accepts the following command-line arguments:
 
 ```bash
-./main <file1.mtx> <file2.mtx> <operation> <print>
 ./main <file1.mtx>
+./main <file1.mtx> <file2.mtx> <operation> <print>
+./main <file1.mtx> tranpose <print>
+
+The first command listed above is used to print the contents of any matrix in the .mtx format to the terminal. The second command listed above is used to perform an operation (addition, subtraction, or multiplication) on any two compatible matrices in the .mtx format. The third and final command listed above is used to take the transpose of a single matrix in the .mtx format. The `<print>` option can be either 0 or 1. 1 indicates that the user would like to print out all matrices to the terminal. 0 indicates that nothing will be printed out to the terminal except CPU time.
