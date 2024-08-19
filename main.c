@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         freeCSRMatrix(&A); 
         freeCSRMatrix(&AT); 
         return EXIT_SUCCESS;
-    }
+	}
 
 	const char *filename_2 = argv[2]; 
 	CSRMatrix B; 
