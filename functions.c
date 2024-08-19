@@ -17,17 +17,17 @@ void ReadMMtoCSR(const char *filename, CSRMatrix *matrix)
 
     while (fgets(line, sizeof(line), file)) 
     {
-        if (line[0] != '%') break; //skip lines that are comments (any line starting with %)
+        if (line[0] != '%') break; 
     }
 
-    //Read the matrix dimensions and number of non-zero elements
+   
     sscanf(line, "%d %d %d", &matrix->num_rows, &matrix->num_cols, &matrix->num_non_zeros);
 
     matrix->csr_data = (double *)malloc(matrix->num_non_zeros * sizeof(double));
     matrix->col_ind = (int *)malloc(matrix->num_non_zeros * sizeof(int));
     matrix->row_ptr = (int *)calloc(matrix->num_rows + 1, sizeof(int));
 
-    if (matrix->csr_data == NULL || matrix->col_ind == NULL || matrix->row_ptr == NULL) //check if memory allocation was successfull
+    if (matrix->csr_data == NULL || matrix->col_ind == NULL || matrix->row_ptr == NULL) 
     {
         fprintf(stderr, "Failed to allocate memory.\n");
         fclose(file);
@@ -36,33 +36,31 @@ void ReadMMtoCSR(const char *filename, CSRMatrix *matrix)
 
     for (int i = 0; i <= matrix->num_rows; i++) 
     {
-        matrix->row_ptr[i] = 0; //initialize row_ptr
+        matrix->row_ptr[i] = 0; 
     }
 
     int row, col;
-    double matrix_value; //initialize row, col, and value with random values for now
-    //read the data entries and populate row_ptr
+    double matrix_value; 
     while (fscanf(file, "%d %d %lf", &row, &col, &matrix_value) == 3) 
     {
-        row-=1;  //Convert to 0 based index
+        row-=1;  
         matrix->row_ptr[row + 1]+=1;
     }
 
-    //Accumulate the row pointers
+    
     for (int i = 1; i <= matrix->num_rows; i++) 
     {
         matrix->row_ptr[i] += matrix->row_ptr[i - 1];
     }
 
-    fseek(file, 0, SEEK_SET); //fseek() basically allows us to jump to another place in the file that we want to read
-    //in our case, we jump to reading from the beginning of the same file again
+    fseek(file, 0, SEEK_SET); 
 
     while (fgets(line, sizeof(line), file)) 
     {
-        if (line[0] != '%') break; //skip comments again
+        if (line[0] != '%') break; 
     }
 
-    int *temp_row_ptr = (int *)malloc((matrix->num_rows + 1) * sizeof(int)); //create temporary row pointerss
+    int *temp_row_ptr = (int *)malloc((matrix->num_rows + 1) * sizeof(int)); 
     if (temp_row_ptr == NULL)
     {
         fprintf(stderr, "Failed to allocate memory.\n");
@@ -70,12 +68,12 @@ void ReadMMtoCSR(const char *filename, CSRMatrix *matrix)
         return;
     }
     
-    memcpy(temp_row_ptr, matrix->row_ptr, (matrix->num_rows + 1) * sizeof(int)); //copy memory from row_ptr to temp_row_ptr
+    memcpy(temp_row_ptr, matrix->row_ptr, (matrix->num_rows + 1) * sizeof(int)); 
 
-    while (fscanf(file, "%d %d %lf", &row, &col, &matrix_value) == 3) //read the data and assign values for csr_data and col_ind
+    while (fscanf(file, "%d %d %lf", &row, &col, &matrix_value) == 3)
     {
         row-=1;  
-        col-=1;  //Convert both rows and cols to 0 based index
+        col-=1; 
         int index = temp_row_ptr[row]++;
         matrix->csr_data[index] = matrix_value;
         matrix->col_ind[index] = col;
@@ -85,7 +83,7 @@ void ReadMMtoCSR(const char *filename, CSRMatrix *matrix)
     fclose(file);
 }
 
-CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This function adds two CSR matrices
+CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) 
 {
     if (A->num_rows != B->num_rows || A->num_cols != B->num_cols)
     {
@@ -93,11 +91,11 @@ CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This functio
         exit(EXIT_FAILURE);
     }
 
-    CSRMatrix C;              // initialize C
-    C.num_rows = A->num_rows; // Sum of matrices will have same dimensions as A or B, doesn't matter which one you use for rows and cols
+    CSRMatrix C;              
+    C.num_rows = A->num_rows; 
     C.num_cols = A->num_cols;
 
-    int max_non_zeros = A->num_non_zeros + B->num_non_zeros; // max number of non zero entries in matrix C will be the sum of non zeroes in A + non zeroes in B
+    int max_non_zeros = A->num_non_zeros + B->num_non_zeros; 
 
     C.row_ptr = (int *)calloc(C.num_rows + 1, sizeof(int));
     C.csr_data = (double *)malloc(max_non_zeros * sizeof(double));
@@ -114,43 +112,39 @@ CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This functio
         exit(EXIT_FAILURE);
     }
 
-    memset(col_tracker, -1, C.num_cols * sizeof(int)); // memset is used to fill blocks of memory. In this case, we put -1 in the blocks
-    // of memory that are being pointed at by the column_marker pointer. We fill in C.num_cols * sizeof(int) bytes of memory
-
-    // we will use column_marker to more efficiently perform addition below
+    memset(col_tracker, -1, C.num_cols * sizeof(int)); 
+    
 
     int counter = 0;
-    for (int i = 0; i < C.num_rows; i++) // iterate over all rows in matrix C (A and B also have the same amount of rows)
+    for (int i = 0; i < C.num_rows; i++) 
     {
         C.row_ptr[i] = counter;
 
-        for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++) // iterate over all non-zero entries in the i-th row of A
+        for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++) 
         {
-            int col = A->col_ind[j]; // this chunk of code in the for loop copies all non-zero elements from A into C
+            int col = A->col_ind[j]; 
             C.csr_data[counter] = A->csr_data[j];
             C.col_ind[counter] = col;
-            col_tracker[col] = counter; // before we set all entries in column_marker to -1.
-            // Now we change them from -1 to the value of the counter for any column in which there is a value of A copied to C
+            col_tracker[col] = counter; 
             counter+=1;
         }
 
-        for (int j = B->row_ptr[i]; j < B->row_ptr[i + 1]; j++) // iterate over all non-zero entries in the i-th row of B
+        for (int j = B->row_ptr[i]; j < B->row_ptr[i + 1]; j++) 
         {
             int col = B->col_ind[j];
-            if (col_tracker[col] != -1) // any column where column_marker[col] != -1 is a column where a value from A was copied into C
+            if (col_tracker[col] != -1) 
             {
-                C.csr_data[col_tracker[col]] += B->csr_data[j]; // so, we perform addition on these entries
+                C.csr_data[col_tracker[col]] += B->csr_data[j]; 
             }
             else
             {
-                C.csr_data[counter] = B->csr_data[j]; // this chunk of code in the else block creates new entries in C and copies the values from B if needed
+                C.csr_data[counter] = B->csr_data[j];
                 C.col_ind[counter] = col;
                 col_tracker[col] = counter;
                 counter+=1;
             }
         }
 
-        // the 2 for loops below are used to reset the entries in column_marker to -1 since they will vary row by row
         for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++)
         {
             int col = A->col_ind[j];
@@ -166,7 +160,6 @@ CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This functio
 
     C.row_ptr[C.num_rows] = counter;
  
-    // Allocate new arrays that will be used to filter out any zeroes that got added to the values during computation
     double *correct_csr_data = (double *)malloc(counter * sizeof(double));
     int *correct_col_ind = (int *)malloc(counter * sizeof(int));
     int *correct_row_ptr = (int *)calloc(C.num_rows + 1, sizeof(int));
@@ -211,10 +204,8 @@ CSRMatrix addCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This functio
     return C;
 }
 
-CSRMatrix subtractCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This function subtracts two CSR matrices
+CSRMatrix subtractCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) 
 {
-    // The logic and implementation of this function is identical to the addCSRMatrices function, except there is subtraction in this function
-    // I will only highlight the changes from addCSRMatrices.
 
     if (A->num_rows != B->num_rows || A->num_cols != B->num_cols)
     {
@@ -263,12 +254,11 @@ CSRMatrix subtractCSRMatrices(const CSRMatrix *A, const CSRMatrix *B) // This fu
             int col = B->col_ind[j];
             if (col_tracker[col] != -1)
             {
-                C.csr_data[col_tracker[col]] -= B->csr_data[j]; // Same as before but subtract entries in matrix C from those in B (instead of add)
+                C.csr_data[col_tracker[col]] -= B->csr_data[j]; 
             }
             else
             {
-                C.csr_data[counter] = -B->csr_data[j]; // here we copy over the negative values of entries in B to C instead of positive
-                // (since if there is no entry in the C data, then is must be 0 and we would have 0 - <Entry in B> = -<Entry in B>)
+                C.csr_data[counter] = -B->csr_data[j]; 
                 C.col_ind[counter] = col;
                 col_tracker[col] = counter;
                 counter+=1;
@@ -341,13 +331,10 @@ CSRMatrix multiplyCSRMatrices(const CSRMatrix *A, const CSRMatrix *B)
         exit(EXIT_FAILURE);
     }
  
-    CSRMatrix C; //initialize C
+    CSRMatrix C; 
     C.num_rows = A->num_rows; 
-    C.num_cols = B->num_cols; //When you multiply matrices A and B, matrix C (the product) will have the number of rows in A and the number of columns in B
-    
-    int max_num_values = 160000000; // A->num_non_zeros * B->num_non_zeros; this is the maximum amount of non-zero entries the product matrix C can have
-                                   //The line above was commented and replaced because it was causing the program to fail memory allocation because the arrays would be way too big
-                                   //Using 160million is big enough and does not cause memory allocation to fail
+    C.num_cols = B->num_cols;     
+    int max_num_values = 160000000; 
     
     C.row_ptr = (int *)calloc(C.num_rows + 1, sizeof(int)); 
     C.csr_data = (double *)malloc(max_num_values * sizeof(double));
@@ -364,34 +351,32 @@ CSRMatrix multiplyCSRMatrices(const CSRMatrix *A, const CSRMatrix *B)
         exit(EXIT_FAILURE);
     }
 
-    memset(column_marker, -1, C.num_cols * sizeof(int)); //Same concept as before in add and subtract functions using memset
- 
-    // again, column_marker will be used to help us perform multiplication efficiently 
+    memset(column_marker, -1, C.num_cols * sizeof(int)); 
 
     int counter = 0;
-    for (int i = 0; i < A->num_rows; i++) // Iterate over the rows of matrix A
+    for (int i = 0; i < A->num_rows; i++) 
     {
         C.row_ptr[i] = counter;
 
-        for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++) // iterate over all non-zero elements in the rows of A
+        for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++)
         {
             int a_col = A->col_ind[j];
-            double a_value = A->csr_data[j]; // store the values and columns where those values occur
+            double a_value = A->csr_data[j]; 
 
-            for (int k = B->row_ptr[a_col]; k < B->row_ptr[a_col + 1]; k++) // iterate over the non-zero elements in B which are in a column corresponding to the values in the rows of A
+            for (int k = B->row_ptr[a_col]; k < B->row_ptr[a_col + 1]; k++) 
             {
                 int b_col = B->col_ind[k];
                 double b_value = B->csr_data[k];
-                if (column_marker[b_col] < C.row_ptr[i]) // check if the current column of B is already present in C
+                if (column_marker[b_col] < C.row_ptr[i])
                 {
-                    column_marker[b_col] = counter; // This is executed if the column of B is not present in C
+                    column_marker[b_col] = counter; 
                     C.col_ind[counter] = b_col;
                     C.csr_data[counter] = a_value * b_value;
-                    counter+=1; // it will add the entry to C and the product of the values
+                    counter+=1;
                 }
                 else
                 {
-                    C.csr_data[column_marker[b_col]] += a_value * b_value; // this is executed if the column of B is already present in C
+                    C.csr_data[column_marker[b_col]] += a_value * b_value; 
                 }
             }
         }
@@ -408,8 +393,6 @@ CSRMatrix multiplyCSRMatrices(const CSRMatrix *A, const CSRMatrix *B)
     }
 
     C.row_ptr[C.num_rows] = counter;
-
-    //This chunck of code has the same concept in using a filter like in the add and subtract functions
 
     double *correct_csr_data = (double *)malloc(counter * sizeof(double));
     int *correct_col_ind = (int *)malloc(counter * sizeof(int));
@@ -455,12 +438,12 @@ CSRMatrix multiplyCSRMatrices(const CSRMatrix *A, const CSRMatrix *B)
     return C; 
 }
 
-CSRMatrix transposeCSRMatrix(const CSRMatrix *A) //This function takes the transpose of a matrix
+CSRMatrix transposeCSRMatrix(const CSRMatrix *A) 
 {
     CSRMatrix At;
     At.num_rows = A->num_cols;
-    At.num_cols = A->num_rows; //When you take the transpose of a matrix, the rows and columns are switched
-    At.num_non_zeros = A->num_non_zeros; //Amount of non-zero entries stay the same after you take the transpose
+    At.num_cols = A->num_rows; 
+    At.num_non_zeros = A->num_non_zeros; 
 
     At.row_ptr = (int *)calloc(At.num_rows + 1, sizeof(int));
     At.csr_data = (double *)malloc(At.num_non_zeros * sizeof(double));
@@ -477,15 +460,15 @@ CSRMatrix transposeCSRMatrix(const CSRMatrix *A) //This function takes the trans
 
     for (int i = 0; i < A->num_non_zeros; i++) 
     {
-        At.row_ptr[A->col_ind[i] + 1]++; //count the number of entries in each column of the original matrix A
+        At.row_ptr[A->col_ind[i] + 1]++; 
     }
 
     for (int i = 1; i <= At.num_rows; i++) 
     {
-        At.row_ptr[i] += At.row_ptr[i - 1]; //Cumulative sum to convert counts to row_ptr
+        At.row_ptr[i] += At.row_ptr[i - 1]; 
     }
 
-    int *current_pos = (int *)malloc(At.num_rows * sizeof(int)); //Create a temporary array to track the current position in each row of At
+    int *current_pos = (int *)malloc(At.num_rows * sizeof(int)); 
     if (current_pos == NULL) 
     {
         fprintf(stderr, "Failed to allocate memory.\n");
@@ -494,10 +477,8 @@ CSRMatrix transposeCSRMatrix(const CSRMatrix *A) //This function takes the trans
         free(At.col_ind);
         exit(EXIT_FAILURE);
     }
-    memcpy(current_pos, At.row_ptr, At.num_rows * sizeof(int)); //memcpy() is used to copy a block of memory from one location to another
-    //in this case, we are copying memory from At.row_ptr to current_pos and the size of memory copied is At.num_rows * sizeof(int) bytes
-
-    // Fill the csr_data and col_ind arrays for At
+    memcpy(current_pos, At.row_ptr, At.num_rows * sizeof(int)); 
+    
     for (int i = 0; i < A->num_rows; i++)
     {
         for (int j = A->row_ptr[i]; j < A->row_ptr[i + 1]; j++) 
