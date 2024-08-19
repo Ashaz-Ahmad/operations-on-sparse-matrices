@@ -31,7 +31,7 @@ This project is an implementation of arithmetic operations on sparse matrices, w
 - Make utility
 - Git (optional, for version control)
 - A Unix-based OS (Linux/Mac) or Windows with a POSIX environment (e.g., WSL or MinGW)
-- Matrices in the .mtx file format (I have included just one in this repo but you can download many more at the following website: https://sparse.tamu.edu/)
+- Matrices in the .mtx file format (I have included just one in this repo but you can download many more from the following website: https://sparse.tamu.edu/)
 
 ### Installation
 
