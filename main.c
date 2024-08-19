@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 	ReadMMtoCSR(filename, &A);
 
 	clock_t start_time, end_time;
-    double cpu_time_used;
-    start_time = clock();
+	double cpu_time_used;
+	start_time = clock();
 
 	if (argc == 2)
 	{
