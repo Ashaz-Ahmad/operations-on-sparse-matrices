@@ -39,7 +39,7 @@ This project is an implementation of arithmetic operations on sparse matrices, w
 
     ```bash
     git clone https://github.com/Ashaz-Ahmad/operations-on-sparse-matrices.git
-    cd sparse-matrix-arithmetic
+    cd operations-on-sparse-matrices
     ```
 
 2. Compile the project using `make`:
