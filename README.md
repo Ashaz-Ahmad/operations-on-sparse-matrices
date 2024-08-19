@@ -14,7 +14,7 @@ This project implements various arithmetic operations on sparse matrices using t
 
 ## Introduction
 
-This project is an implementation of arithmetic operations on sparse matrices, which are matrices mostly consisting of zero elements. Using the CSR format allows for efficient memory use and faster computations, which are crucial for large-scale problems in scientific computing and machine learning.
+This project is an implementation of arithmetic operations on sparse matrices, which are matrices consisting mostly of zeros. Using the CSR format allows for efficient memory use and faster computations, which are crucial for large-scale problems in scientific computing and machine learning.
 
 ## Features
 
@@ -27,7 +27,7 @@ This project is an implementation of arithmetic operations on sparse matrices, w
 
 ### Prerequisites
 
-- A C compiler (e.g., GCC)
+- A C compiler (I have used GCC in my Makefile)
 - Make utility
 - Git (optional, for version control)
 - A Unix-based OS (Linux/Mac) or Windows with a POSIX environment (e.g., WSL or MinGW)
@@ -37,7 +37,7 @@ This project is an implementation of arithmetic operations on sparse matrices, w
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/sparse-matrix-arithmetic.git
+    git clone https://github.com/Ashaz-Ahmad/operations-on-sparse-matrices.git
     cd sparse-matrix-arithmetic
     ```
 
