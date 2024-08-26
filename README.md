@@ -48,7 +48,7 @@ This project is an implementation of arithmetic operations on sparse matrices, w
     make
     ```
 
-    This will compile the program and generate the executable.
+    This will compile the program and generate the executable called `main`.
 
 ### Usage
 
